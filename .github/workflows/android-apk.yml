@@ -15,13 +15,13 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 60
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
           node-version: 20
 
-      - uses: actions/setup-java@v4
+      - uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: 17
@@ -47,7 +47,27 @@ jobs:
         working-directory: android
         env:
           GOOGLE_MAPS_API_KEY: ${{ secrets.GOOGLE_MAPS_API_KEY }}
-        run: ./gradlew assembleRelease --no-daemon
+        run: |
+          set -o pipefail
+          ./gradlew assembleRelease --no-daemon 2>&1 | tee ../gradle.log
+
+      - name: Report build error
+        if: failure()
+        run: |
+          # Surface the Gradle / Metro error as annotations (readable without log access)
+          python3 - <<'PY'
+          import re
+          log = open('gradle.log', errors='replace').read() if __import__('os').path.exists('gradle.log') else ''
+          lines = log.splitlines()
+          chunks = []
+          for i, l in enumerate(lines):
+              if 'What went wrong' in l or re.search(r'(^e: |error:|Error:|FAILED|SyntaxError|Unable to resolve)', l):
+                  chunks.append('\n'.join(lines[max(0, i-2):i+25]))
+          if not chunks:
+              chunks = ['\n'.join(lines[-60:])]
+          for c in chunks[:8]:
+              print('::error title=Gradle::' + c[:4000].replace('%', '%25').replace('\r', '').replace('\n', '%0A'))
+          PY
 
       - name: Rename APK
         run: |
