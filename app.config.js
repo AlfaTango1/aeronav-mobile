@@ -10,6 +10,10 @@ module.exports = {
     orientation: 'portrait',
     userInterfaceStyle: 'dark',
     backgroundColor: '#0d1117',
+    splash: {
+      backgroundColor: '#0d1117',
+      resizeMode: 'contain',
+    },
     ios: {
       bundleIdentifier: 'com.alfatango.aeronav',
       supportsTablet: true,
@@ -20,6 +24,10 @@ module.exports = {
     },
     android: {
       package: 'com.alfatango.aeronav',
+      splash: {
+        backgroundColor: '#0d1117',
+        resizeMode: 'contain',
+      },
       versionCode: 1,
       permissions: ['ACCESS_FINE_LOCATION', 'ACCESS_COARSE_LOCATION'],
       config: {
